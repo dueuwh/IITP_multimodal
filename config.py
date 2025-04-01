@@ -3,7 +3,7 @@ import sys
 from dataclasses import dataclass, asdict, field
 
 """ 
-Data feature notation convention
+Data feature notation convention in folder name and this file
 1. lower
 2. sigular
 """
@@ -32,9 +32,9 @@ class Preprocessing_Config:
     """
     
     """ Fixed by the sampling rates of each sensors """
-    EEG_label = 120
-    ECG = 26
-    PPG = 27
+    eeg_label = 120
+    ecg = 26
+    ppg = 27
     video = 6
     
     """ The customizable variables """
@@ -64,6 +64,16 @@ class Preprocessing_Config:
                    default_crop_size=[640, 640])
     
     def get_config(exp_name="pilot_test"):
-        return getattr(Config, exp_name)()
+        return getattr(Preprocessing_Config, exp_name)()
+
+@dataclass
+class Model_Config:
+    """
+    example
+    """
+    model_name = "sota"
     
+    @classmethod
+    def pilot_test(cls):
+        return cls(model_name="sota")
     

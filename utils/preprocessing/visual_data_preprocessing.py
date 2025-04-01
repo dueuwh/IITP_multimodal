@@ -3,6 +3,15 @@ import numpy as np
 import cv2
 from tqdm import tqdm
 import mediapipe as mp
+from pymediainfo import MediaInfo
+
+def get_video_creation_time(Config):
+    for video in Config.video_list:
+        media_info = MediaInfo.parse(os.path.join(Config.data_path, f"video/{video}"))
+        for track in media_info.tracks:
+            if track.track_type == "General":
+                track.tagged_date
+    return None
 
 def image_preprocess(Config):
     return 0
@@ -77,7 +86,10 @@ def video_preprocess(Config):
                 if resize_ratio != 1.0:
                     crop_frame = cv2.resize(crop_frame, (0, 0), fx=resize_ratio, fy=resize_ratio, interpolation=cv2.INTER_LINEAR)
                 save_path = os.path.join(save_path, f"{frame_count}.png")
+                
+                """ Save as npy files with chunk size in Preprocessing_Config"""
                 cv2.imwrite(save_path, crop_frame)
+                
                 pbar.update(1)
                 frame_count += 1
             cap.release()

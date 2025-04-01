@@ -7,6 +7,25 @@ import scipy.io as sio
 from dataclasses import dataclass
 from typing import List
 import codecs
+from pymediainfo import MediaInfo
+
+def get_video_creation_time_mediainfo(video_path):
+    """
+    pymediainfo를 사용하여 영상 파일의 촬영 시작 시간(creation_time)을 가져옵니다.
+
+    Args:
+        video_path (str): 영상 파일 경로.
+
+    Returns:
+        str: 촬영 시작 시간 또는 None.
+    """
+    media_info = MediaInfo.parse(video_path)
+
+    for track in media_info.tracks:
+        if track.track_type == "General":
+            return track.tagged_date  # 촬영 시작 시간
+
+    return None
 
 def remove_unnecessary_counter(path):
     files = os.listdir(path)
@@ -59,4 +78,12 @@ if __name__ == "__main__":
     # print(max_number)
     
     a = "C:\home\data\test_file.py"
+    
+    
+    start_time_list = []
+    path = "D:/home/BCML/IITP-multimodal/data/test_data/video/"
+    video_list = os.listdir(path)
+    for video in video_list:
+        print(os.path.join(path, video))
+        start_time_list.append(get_video_creation_time_mediainfo(os.path.join(path, video)))
     

@@ -3,7 +3,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 from multiprocessing import Pool, Manager
-from preprocessing.visual_data_preprocessing import video_preprocess, video_multi_preprocess, image_preprocess, image_multi_preprocess
+from utils.preprocessing.visual_data_preprocessing import get_video_creation_time
+from utils.preprocessing.physiological_signal_preprocessing import get_ECGnPPG_creation_time
 
 """
     Data folder structure should be:
@@ -68,11 +69,13 @@ def preprocess(Config):
     data_types = os.listdir(Config.data_path)
     
     if 'video' in Config.input_features and Config.multi_process == 1:
-        print("\nStart video preprocessing")
+        print("\nStarting video preprocessing")
         video_preprocess(Config)
-        
+    elif 'video' in Config.input_features and Config.multi_process >= 2:
+        print("\nStarting video preprocessing with multiprocess")
+    
     if 'image' in Config.input_feature and Config.multi_process == 1:
-        print("\nStart image preprocessing")
+        print("\nStarting image preprocessing")
         image_preprocess(Config)
 
 def match_files(Config):
