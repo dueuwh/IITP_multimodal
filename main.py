@@ -4,6 +4,6 @@ from utils import preprocess
 
 if __name__ == "__main__":
     if Preprocessing_Config.preprocess:
-        preprocess(Preprocessing_Config.pilot_test())
+        preprocess(Preprocessing_Config.only_video())
         
     
