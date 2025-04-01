@@ -40,64 +40,8 @@ class MultiModalDataset(Dataset):
         text_data (list): A list of text strings.
         labels (list): A list of labels corresponding to the data.
         text_tokenizer (callable): A function or callable to tokenize text into tensors.
-     
-    Data folder structure should be:
-    ****** All folder names must be in lower case and singular notation ******
-        root
-            video (or image)
-            
-                160_1.mp4
-                160_2.mp4
-                ...
-                16n_n.mp4
-                
-            image
-                160_1
-                    000.png
-                    001.png
-                    ...
-                    nnn.png
-                160_2
-                    000.png
-                    001.png
-                    ...
-                    nnn.png
-                
-                ...
-                
-                16n_n
-                    000.png
-                    001.png
-                    ...
-                    nnn.png
-                
-            eeg
-                160_1.mat
-                160_2.mat
-                ...
-                16n_n.mat
-                
-            polar (ecg)
-                160_1.csv
-                160_2.csv
-                ...
-                16n_n.csv
-                
-            rppg (if exist)
-                160_1.npy
-                160_2.npy
-                ...
-                16n_n.npy
+    
     """
-    
-    @staticmethod
-    def check_file_names(directory_list):
-        return 0
-    
-    @staticmethod
-    def data_visualization(data):
-        plt.plot(data)
-        plt.show()
     
     def __init__(self, data_dir, time_window=1):
         

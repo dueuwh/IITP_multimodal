@@ -6,6 +6,7 @@ import pandas as pd
 import scipy.io as sio
 from dataclasses import dataclass
 from typing import List
+import codecs
 
 def remove_unnecessary_counter(path):
     files = os.listdir(path)
@@ -29,6 +30,18 @@ def remove_unnecessary_counter(path):
 #     def add(self, element):
 #         self.x += element
 
+def replace_backslash_with_slash(input_string):
+    """
+    Replace all backslashes in the input string with forward slashes.
+
+    Args:
+        input_string (str): The input string containing backslashes.
+
+    Returns:
+        str: A string with all backslashes replaced by forward slashes.
+    """
+    return input_string.replace("\\", "/")
+
 
 if __name__ == "__main__":
     # path = "D:/home/BCML/IITP/data/16channel_Emotion/Polar/"
@@ -40,7 +53,10 @@ if __name__ == "__main__":
     # o2.add(2)
     # assert o1.x == [1, 2]
     # assert o1.x is not o2.x
-    max_number = 0
-    for i in range(100):
-        max_number = max(max_number, np.random.randint(0, 100))
-    print(max_number)
+    # max_number = 0
+    # for i in range(100):
+    #     max_number = max(max_number, np.random.randint(0, 100))
+    # print(max_number)
+    
+    a = "C:\home\data\test_file.py"
+    
