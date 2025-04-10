@@ -25,7 +25,7 @@ def get_physiological_creation_time(Config):
         else:
             creation_time[feature] = {}
             for file in Config.match_files:
-                creation_time[feature][file] = get_file_creation_time(Config.data_path, f"{feature}/{file}")
+                creation_time[feature][file] = get_file_creation_time(os.path.join(Config.data_path, f"{feature}/{file}{Config.extensions[feature]}"))
     return creation_time
 
 

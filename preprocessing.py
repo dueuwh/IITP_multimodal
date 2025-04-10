@@ -67,15 +67,15 @@ def preprocess(Config):
         raise TypeError(f"save path: {Config.save_path} is not a string")
     
     match, no_match = match_files(Config)
-    print(f"{'='*20}")
+    print(f"{'='*50}")
     print(f"Common files: {match}")
     if len(no_match) == 0:
         print("No unique files")
     else:
-        for key, value in no_match:
+        for key, value in no_match.items():
             print(f"Unique files: {key} : [{value}]")
         print("Unique files will not be preprocessed")
-    print(f"{'='*20}")
+    print(f"{'='*50}")
     
     Config.match_files = match
     
@@ -118,15 +118,10 @@ def match_files(Config):
     
     max_file_number = 0
     for feature in Config.input_features:
-        try:
-            temp_list = [name.split('.')[0] for name in os.listdir(os.path.join(Config.data_path, feature))]
-        except:
-            temp_list = os.listdir(os.path.join(Config.data_path, feature))
+        temp_list = [name.split('_')[0]+'_'+name.split('_')[1].split('.')[0] for name in os.listdir(os.path.join(Config.data_path, feature))]
             
         total_files[feature] = temp_list
         max_file_number = max(max_file_number, len(temp_list))
-    
-    print("total_files: ", total_files)
     
     lists = list(total_files.values())
 
@@ -138,8 +133,11 @@ def match_files(Config):
     else:
         match = set()
     
+    # find unique files
     all_strings = set(item for lst in lists for item in lst)
     for key, lst in total_files.items():
+        print("first: ", set(lst))
+        print("second: ", (all_strings - set(lst)))
         unique_list = list(set(lst) - (all_strings - set(lst)))
         if len(unique_list) == 0:
             pass

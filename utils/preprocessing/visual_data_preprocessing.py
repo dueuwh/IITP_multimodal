@@ -6,8 +6,8 @@ import mediapipe as mp
 from pymediainfo import MediaInfo
 
 def get_video_creation_time(Config):
-    for video in Config.video_list:
-        media_info = MediaInfo.parse(os.path.join(Config.data_path, f"video/{video}"))
+    for video in Config.match_files:
+        media_info = MediaInfo.parse(os.path.join(Config.data_path, f"video/{video}{Config.extensions['video']}"))
         for track in media_info.tracks:
             if track.track_type == "General":
                 return track.tagged_date

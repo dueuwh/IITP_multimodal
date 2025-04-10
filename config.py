@@ -20,10 +20,11 @@ class Preprocessing_Config:
         face_detector: (str) : The "mediapipe" is the only method implemented so far.
         default_crop_size (list[int, int]) : Height, width. This is the input size if resize_ratio equals to 1.0
         resize_ratio (float) : The resize ratio for cropped frame, decrease if out of memory error occurs
-        data_chunk (float): The data slicing window (seconds)
+        data_chunk (float) : The data slicing window (seconds)
                             The minimum time window is 0.2 second.
                             It should be 0.2 * natural number
         match_files (list[str, str, ...]) : Common file names exist in all feature folders
+        extensions (dict) : The extension for each physiological raw data files.
                              
                        | Sampling rate | minimum slicing |
             EEG, label |     600 Hz    |     120 idx     |
@@ -49,7 +50,8 @@ class Preprocessing_Config:
     resize_ratio: float = 1.0
     data_chunk: float = 0.2
     match_files: list[str] = field(default_factory=list)
-    
+    extensions = {'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'}
+   
     @classmethod
     def pilot_test(cls):
         return cls(input_features=['eeg', 'rppg', 'ecg', 'video'],
