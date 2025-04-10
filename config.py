@@ -23,6 +23,7 @@ class Preprocessing_Config:
         data_chunk (float): The data slicing window (seconds)
                             The minimum time window is 0.2 second.
                             It should be 0.2 * natural number
+        match_files (list[str, str, ...]) : Common file names exist in all feature folders
                              
                        | Sampling rate | minimum slicing |
             EEG, label |     600 Hz    |     120 idx     |
@@ -47,6 +48,7 @@ class Preprocessing_Config:
     default_crop_size: list[int, int] = field(default_factory=list)  # 
     resize_ratio: float = 1.0
     data_chunk: float = 0.2
+    match_files: list[str] = field(default_factory=list)
     
     @classmethod
     def pilot_test(cls):

@@ -2,10 +2,67 @@ import os
 import numpy as np
 import scipy.io as sio
 import pandas as pd
+from datetime import datetime
 
-def get_ECGnPPG_creation_time(Config):
+def get_physiological_creation_time(Config):
+    """
+    Parameters
+    ----------
+    Config : dataclass
+        Refer the 'config.py' file.
+
+    Returns
+    -------
+    creation_time : dict
+        The creation time for all files.
+
+    """
+    creation_time = {}
     
-    return 0
+    for feature in Config.input_features:
+        if feature == 'video':
+            pass
+        else:
+            creation_time[feature] = {}
+            for file in Config.match_files:
+                creation_time[feature][file] = get_file_creation_time(Config.data_path, f"{feature}/{file}")
+    return creation_time
+
+
+def get_file_creation_time(file_path):
+    """
+    Parameters
+    ----------
+    file_path : str
+        literally file path.
+
+    Raises
+    ------
+    FileNotFoundError
+        It is not a file path (it is a folder path or something else.)
+    ValueError
+        The extension is not supported.
+    OSError
+        Cannot find the creation time.
+
+    Returns
+    -------
+    readable_time : TYPE
+        DESCRIPTION.
+
+    """
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"The file '{file_path}' does not exist.")
+    
+    if not (file_path.endswith(".csv") or file_path.endswith(".npy") or file_path.endswith(".mat")):
+        raise ValueError(f"The file '{file_path}' is not a .csv or .npy or .mat file.")
+    
+    try:
+        creation_time = os.path.getctime(file_path)
+        readable_time = datetime.fromtimestamp(creation_time).strftime('%Y-%m-%d %H:%M:%S')
+        return readable_time
+    except Exception as e:
+        raise OSError(f"Error retrieving the creation time of the file: {e}")
 
 def synchronization_UNIXTIME():
     return 0    
