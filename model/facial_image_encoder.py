@@ -448,7 +448,7 @@ class VCCT(nn.Module):
                  mlp_dropout=0.1,
                  feedforward_dim=768,
             ):
-        super(VGGT, self).__init__()
+        super(VCCT, self).__init__()
         self.vgg = MixedFeatureNet()
         self.patcher = PatchExtraction()
         self.gap = nn.AdaptiveAvgPool2d(1)
@@ -503,7 +503,7 @@ class VCCT_encoder(nn.Module):
                  mlp_dropout=0.1,
                  feedforward_dim=768,
             ):
-        super(VGGT, self).__init__()
+        super(VCCT, self).__init__()
         self.vgg = MixedFeatureNet()
         self.patcher = PatchExtraction()
         self.gap = nn.AdaptiveAvgPool2d(1)

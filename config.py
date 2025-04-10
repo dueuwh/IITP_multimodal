@@ -89,14 +89,28 @@ class Preprocessing_Config:
     def get_config(exp_name="pilot_test"):
         return getattr(Preprocessing_Config, exp_name)()
 
+
 @dataclass
 class Model_Config:
-    """
-    example
-    """
-    model_name = "sota"
+    model_name = "BLIP"
+    image_encoder: str = "FER_1"
+    visual_2d_positional_encoder: str = "none"
+    physiological_positional_encoder: str = "naive"
     
     @classmethod
-    def pilot_test(cls):
-        return cls(model_name="sota")
+    def blip_default(cls):
+        return cls()
     
+
+@dataclass
+class Train_Config:    
+    learning_rate: float = 1e-5
+    epoch: int = 100
+    early_stopping: bool = True
+    optimizer: str = "adam"
+    
+    
+    @classmethod
+    def blip_train_1(cls):
+        return cls()
+

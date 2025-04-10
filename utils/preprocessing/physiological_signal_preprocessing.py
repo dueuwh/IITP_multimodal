@@ -47,8 +47,8 @@ def get_file_creation_time(file_path):
 
     Returns
     -------
-    readable_time : TYPE
-        DESCRIPTION.
+    readable_time : list
+        The creation time of each files.
 
     """
     if not os.path.isfile(file_path):
@@ -64,8 +64,8 @@ def get_file_creation_time(file_path):
     except Exception as e:
         raise OSError(f"Error retrieving the creation time of the file: {e}")
 
-def synchronization_UNIXTIME():
-    return 0    
+def check_chunk(data):
+    return data
 
 
 """ The following code is taken from the 'BaseLoader.py' file in the rppg-toolbox library """

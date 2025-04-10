@@ -100,12 +100,12 @@ def video_preprocess(Config):
     
     crop_worker.close()
     
-def video_multi_preprocess(data_path, save_path, resize_ratio, crop_size):
-    video_list = os.listdir(data_path)
+def video_multi_preprocess(Config):
+    video_list = os.listdir(Config.data_path)
     
     max_frame = 0
     for video in video_list:
-        cap = cv2.VideoCapture(os.path.join(data_path, video))
+        cap = cv2.VideoCapture(os.path.join(Config.data_path, video))
         if not cap.isOpened():
             print(f"\n*** Failed to open the video: {video} ***")
             continue
@@ -170,3 +170,40 @@ class MPcrop:
     
         return resized_cropped_face, last_bbox
 
+if __name__ == "__main__":
+    
+    from dataclasses import dataclass, field
+    
+    @dataclass
+    class direct_use_config:
+        """ Fixed by the sampling rates of each sensors """
+        eeg_label = 120
+        ecg = 26
+        ppg = 27
+        video = 6
+        
+        """ The customizable variables """
+        preprocess: bool = True
+        data_path: str = "./data/test_data"  # this path should be changed
+        cache_path: str = "./data/preprocessed_data"  # this path should be changed
+        input_features: list[str] = field(default_factory=list)
+        multi_process: int = 1  # multiprocessding process number
+        face_detector: str = "mediapipe"
+        default_crop_size: list[int, int] = field(default_factory=list)
+        resize_ratio: float = 1.0
+        resize_pixel: list[int, int] = field(default_factory=list)
+        data_chunk: float = 0.2
+        match_files: list[str] = field(default_factory=list)
+        extensions: dict = field(default_factory=dict)
+        dataset: str = "16channel_kw"
+
+        @classmethod
+        def only_video(cls):
+            return cls(input_features=['video'],
+                       default_crop_size=[640, 640],
+                       resize_pisel=[48, 48],
+                       extensions={'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'})
+
+    direct_use_config = direct_use_config.only_video()
+    
+    video_preprocess(direct_use_config)
