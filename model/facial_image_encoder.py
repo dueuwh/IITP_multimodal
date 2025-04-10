@@ -385,6 +385,7 @@ class VCCT(nn.Module):
 
 """ VCCT encoder """
 
+@torch.no_grad()
 class VCCT_encoder(nn.Module):
     def __init__(self,
                  num_encoders=1,
@@ -433,4 +434,5 @@ class VCCT_encoder(nn.Module):
         x = self.fc1(x).squeeze(dim=2)
         x = self.transformer(x)
         x = torch.matmul(F.softmax(self.attention_pool(x), dim=1).transpose(-1, -2), x)
-        return x
+        fer_answer = self.fc(x).squeeze(1)
+        return x, fer_answer

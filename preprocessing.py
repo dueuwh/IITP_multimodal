@@ -68,12 +68,13 @@ def preprocess(Config):
     
     match, no_match = match_files(Config)
     print(f"{'='*50}")
+    print(f"Check file names\n")
     print(f"Common files: {match}")
     if len(no_match) == 0:
         print("No unique files")
     else:
         for key, value in no_match.items():
-            print(f"Unique files: {key} : [{value}]")
+            print(f"Unique files: {key} : {value}")
         print("Unique files will not be preprocessed")
     print(f"{'='*50}")
     
@@ -136,9 +137,7 @@ def match_files(Config):
     # find unique files
     all_strings = set(item for lst in lists for item in lst)
     for key, lst in total_files.items():
-        print("first: ", set(lst))
-        print("second: ", (all_strings - set(lst)))
-        unique_list = list(set(lst) - (all_strings - set(lst)))
+        unique_list = list(set(lst) - match)
         if len(unique_list) == 0:
             pass
         else:

@@ -25,7 +25,13 @@ class Preprocessing_Config:
                             It should be 0.2 * natural number
         match_files (list[str, str, ...]) : Common file names exist in all feature folders
         extensions (dict) : The extension for each physiological raw data files.
-                             
+        dataset (str) : dataset name
+                        -name list
+                         "16channel_kw" : The 16channel experiments conducted in kwangwoon university
+                         "DEAP" : DEAP dataset
+                         "16channel_Yonsei" : The 16channel experiments conducted in yonsei university
+                                              * This dataset is still a work in progress - 2025.04.10
+                        
                        | Sampling rate | minimum slicing |
             EEG, label |     600 Hz    |     120 idx     |
             ECG        |     130 Hz    |      26 idx     |
@@ -50,8 +56,10 @@ class Preprocessing_Config:
     resize_ratio: float = 1.0
     data_chunk: float = 0.2
     match_files: list[str] = field(default_factory=list)
-    extensions = {'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'}
-   
+    extensions: dict = {'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'}
+    dataset: str = "16channel_kw"
+    
+    
     @classmethod
     def pilot_test(cls):
         return cls(input_features=['eeg', 'rppg', 'ecg', 'video'],
