@@ -38,11 +38,13 @@ class MultiModalDataset(Dataset):
     """
     
     def __init__(self, data_dir, time_window=1):
-
+        self.data_dir = data_dir
+        
     def __len__(self):
-
+        return 0
+    
     def __getitem__(self, idx):
-
+        return 0
     
     def cal_total_data_length(self):
         total_window_count_list = []
@@ -54,8 +56,7 @@ class MultiModalDataset(Dataset):
         return total_window_count_list
     
     def set_files(self, count):
-        
-        return input_x, input_y
+        return 0
 
     
 

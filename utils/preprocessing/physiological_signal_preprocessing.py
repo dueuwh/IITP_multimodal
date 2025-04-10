@@ -3,7 +3,8 @@ import numpy as np
 import scipy.io as sio
 import pandas as pd
 
-def get_ECGnPPG_creation_time():
+def get_ECGnPPG_creation_time(Config):
+    
     return 0
 
 def synchronization_UNIXTIME():

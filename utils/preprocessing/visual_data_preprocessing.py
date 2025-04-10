@@ -10,7 +10,7 @@ def get_video_creation_time(Config):
         media_info = MediaInfo.parse(os.path.join(Config.data_path, f"video/{video}"))
         for track in media_info.tracks:
             if track.track_type == "General":
-                track.tagged_date
+                return track.tagged_date
     return None
 
 def image_preprocess(Config):
