@@ -289,6 +289,36 @@ class VGG19(nn.Module):
         x = self.block4(x)
         return x
 
+class DepthWiseSeperableConv(nn.Module):
+    def __init__(self, in_channel, out_channel, kernel_size, stride, padding, bias=False):
+        super(DepthWiseSeperableConv, self).__init__()
+        self.depthwise = nn.Conv2d(in_channel,
+                                   in_channel,
+                                   kernel_size=kernel_size,
+                                   stride=stride,
+                                   padding=padding,
+                                   groups=in_channel,
+                                   bias=bias
+                                   )
+        self.bn1 = nn.BatchNorm2d(in_channel)
+        self.relu = nn.ReLU()
+        self.pointwise = nn.Conv2d(in_channel,
+                                   out_channel,
+                                   kernel_size=1,
+                                   bias=bias
+                                   )
+        self.bn2 = nn.BatchNorm2d(out_channel)
+        self.relu2 = nn.ReLU()
+
+    def forward(self, x):
+        out = self.depthwise(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        out = self.pointwise(out)
+        out = self.bn2(out)
+        out = self.relu2(out)
+        return out
+
 class PatchExtraction(nn.Module):
     """ Patch extraction block:
             - Depthwise separable convolutional layer
@@ -327,7 +357,83 @@ class PatchExtraction(nn.Module):
         out = self.conv2(out)
         out = self.conv3(out)
         return out
-    
+
+class MultiheadedSelfAttention(nn.Module):
+    def __init__(self,
+                 embed_dim,
+                 num_heads=8,
+                 attn_dropout=0.5,
+                 proj_dropout=0.5,
+                 ):
+        super().__init__()
+        self.num_heads = num_heads
+        assert embed_dim % num_heads == 0, "Embedding dim must be divisible by number of heads."
+        head_dim = embed_dim // num_heads
+        self.scale = head_dim ** -0.5
+
+        self.qkv = nn.Linear(embed_dim, embed_dim * 3)
+        self.attn_dropout = nn.Dropout(attn_dropout)
+        self.projection = nn.Linear(embed_dim, embed_dim)
+        self.proj_dropout = nn.Dropout(proj_dropout)
+
+    def forward(self, x):
+        B, N, C = x.shape
+        qkv = (
+            self.qkv(x) # B, N, (3*C)
+            .reshape(B, N, 3, self.num_heads, C // self.num_heads) # B, N, 3(qkv), H(eads), embed_dim
+            .permute(2, 0, 3, 1, 4) # 3, B, H(eads), N, emb_dim
+        )
+        q, k, v = torch.chunk(qkv, 3) # B, H, N, dim
+        # B,H,N,dim x B,H,dim,N -> B,H,N,N
+        attn = torch.matmul(q, k.transpose(-2, -1)) * self.scale # <q,k> / sqrt(d)
+        attn = attn.softmax(dim=-1) # Softmax over embedding dim
+        attn = self.attn_dropout(attn)
+
+        x = ( # B, H, N, N
+            torch.matmul(attn, v) # B,H,N,N x B,H,N,dim -> B, H, N, dim
+            .transpose(1, 2) # B, N, H, dim
+            .reshape(B, N, C) # B, N, (H*dim)
+        )
+        x = self.projection(x)
+        x = self.proj_dropout(x)
+
+        return x
+
+class EncoderLayer(nn.Module):
+    def __init__(self,
+                 embed_dim=192,
+                 num_heads=8,
+                 attn_dropout=0.5,
+                 proj_dropout=0.5,
+                 mlp_dropout=0.1,
+                 feedforward_dim=768,
+            ):
+        super().__init__()
+        self.norm_1 = nn.LayerNorm(embed_dim)
+        self.norm_2 = nn.LayerNorm(embed_dim)
+        self.MHA = MultiheadedSelfAttention(embed_dim,
+                                        num_heads,
+                                        attn_dropout,
+                                        proj_dropout,
+                   )
+        self.ff = nn.Sequential(nn.Linear(embed_dim, feedforward_dim),
+                                nn.GELU(),
+                                nn.Dropout(mlp_dropout),
+                                nn.Linear(feedforward_dim, embed_dim),
+                                nn.Dropout(mlp_dropout),
+                 )
+
+    def forward(self, x):
+        mha = self.norm_1(x)
+        mha = self.MHA(mha)
+        x = x + mha # Residual connection (Add)
+
+        x = self.norm_2(x)
+        x2 = self.ff(x)
+        x = x + x2  # Residual connection (Add)
+
+        return x
+
 """ VCCT Original """
 
 

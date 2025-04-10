@@ -1,11 +1,8 @@
 import os
-import cv2
 import numpy as np
 from tqdm import tqdm
-from multiprocessing import Pool, Manager
 from utils.preprocessing.visual_data_preprocessing import get_video_creation_time
 from utils.preprocessing.physiological_signal_preprocessing import get_physiological_creation_time
-import re
 
 
 def preprocess(Config):
@@ -68,7 +65,7 @@ def preprocess(Config):
     
     match, no_match = match_files(Config)
     print(f"{'='*50}")
-    print(f"Check file names\n")
+    print("Check file names\n")
     print(f"Common files: {match}")
     if len(no_match) == 0:
         print("No unique files")

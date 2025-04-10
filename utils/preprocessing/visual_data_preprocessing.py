@@ -114,28 +114,6 @@ def video_multi_preprocess(data_path, save_path, resize_ratio, crop_size):
     
     frame_start_num = (max_frame // 10 + 1) * 10
 
-"""
-# It has better readability to find minimum scale ratio...
-# GPT won.
-
-def resize_default_size(image, default_size):
-    ih, iw, _ = image.shape
-    max_axis_pixel = max(ih, iw)
-    max_axis = image.shape.index(max_axis_pixel)
-        
-    def padding():
-        
-    
-    if max_axis == 0:  # if the ih is larger than the iw
-        new_w = int(another_size*default_size/ih)
-        new_h = default_size
-        image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-    else:
-        new_w = default_size
-        new_h = int(another_size*default_size/iw)
-        image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-"""
-
 def resize_and_pad(image, default_size):
     h, w = image.shape[:2]
     target_h, target_w = default_size
