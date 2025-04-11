@@ -21,7 +21,7 @@ class Preprocessing_Config:
         face_detector: (str) : The "mediapipe" is the only method implemented so far.
         default_crop_size (list[int, int]) : Height, width. This is the input size if resize_ratio equals to 1.0
         resize_ratio (float) : The resize ratio for cropped frame, decrease if out of memory error occurs
-        resize_pixel (tuple[int, int]) : The resize pixel size for cropped frame.
+        resize_pixel (tuple[int, int]) : Height, width. The resize pixel size for cropped frame.
                                         If the pixel size is 1, it regards as "Do not resize by referencing this parameter"
         data_chunk (float) : The data slicing window (seconds)
                             The minimum time window is 0.2 second.

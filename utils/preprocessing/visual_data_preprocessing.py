@@ -4,6 +4,7 @@ import cv2
 from tqdm import tqdm
 import mediapipe as mp
 from pymediainfo import MediaInfo
+from multiprocessing import Process, Manager
 
 def get_video_creation_time(Config):
     video_time_list = {}
@@ -15,11 +16,14 @@ def get_video_creation_time(Config):
                 
     return video_time_list
 
+
 def image_preprocess(Config):
     return 0
 
+
 def image_multi_preprocess(Config):
     return 0
+
 
 def video_preprocess(Config):
     """
@@ -40,11 +44,21 @@ def video_preprocess(Config):
 
     data_path = os.path.join(Config.data_path, "video")
     save_path = os.path.join(Config.cache_path, "video")
+    crop_size = Config.default_crop_size
     resize_ratio = Config.resize_ratio
     resize_pixel = Config.resize_pixel
-    crop_size = Config.default_crop_size
-    frame_chunk = int(Config.data_chunk*Config.minimum_chunk)
+    frame_chunk = int(Config.data_chunk*Config.minimum_chunk["video"])
     
+    save_frame_h, save_frame_w = crop_size
+    
+    if resize_ratio != 1.0:
+        save_frame_h = int(save_frame_h * resize_ratio)
+        save_frame_w = int(save_frame_w * resize_ratio)
+    
+    if resize_pixel[0] != 1 and resize_pixel[1] != 1:
+        save_frame_h = resize_pixel[0]
+        save_frame_w = resize_pixel[1]
+
     os.makedirs(save_path, exist_ok=True)
     
     # if not isinstance(resize_ratio, int):
@@ -77,10 +91,11 @@ def video_preprocess(Config):
         frame_num_list.append(number_of_frames)
     
     print(f"Total frames to process: {total_frames}")
-    frame_start_num = (max_frame // 10 + 1) * 10
-    
+    frame_start_num = 10**len(str(max_frame))
+
     with tqdm(total=total_frames, desc="Preprocessing all videos with 1 process", unit='frame') as pbar:
         for i, video in enumerate(video_list):
+
             frame_count = frame_start_num
             cap = cv2.VideoCapture(os.path.join(data_path, video))
             
@@ -92,6 +107,8 @@ def video_preprocess(Config):
             print("Processing video: {video} ({frame_num_list[i]} frames)")
             
             last_bbox = []
+            save_chunk = np.zeros((frame_chunk, save_frame_h, save_frame_w, 3))
+            frame_chunk_index = 0
             while True:
                 ret, frame = cap.read()
                 if not ret:
@@ -111,7 +128,13 @@ def video_preprocess(Config):
                     crop_frame = cv2.resize(crop_frame, resize_pixel, fx=0, fy=0, interpolation=cv2.INTER_AREA)
 
                 """ Save as npy files with chunk size in Preprocessing_Config"""
-                
+
+                if frame_count%frame_chunk == 0:
+                    if frame_count == frame_start_num:
+                        save_chunk[frame_chunk_index] = crop_frame        
+                    np.save(os.path.join(save_path, f"{frame_count}.npy"), save_chunk)
+                    frame_chunk_index = 0
+                save_chunk[frame_chunk_index] = crop_frame
                 
                 # save_path = os.path.join(save_path, f"{frame_count}.png")
                 # cv2.imwrite(save_path, crop_frame)
@@ -123,8 +146,24 @@ def video_preprocess(Config):
         print("\nFinished preprocessing all videos.")
     
     crop_worker.close()
-    
+
+
 def video_multi_preprocess(Config):
+    """
+    Parameters
+    ----------
+    Config : dataclass
+        Refer the 'config.py' file.
+
+    Returns
+    -------
+    Nothing
+
+    Purpose
+    -------
+    Crop a face from a video or image and save it as npy files with multiprocess.
+    
+    """
     video_list = os.listdir(Config.data_path)
     
     max_frame = 0
@@ -136,7 +175,8 @@ def video_multi_preprocess(Config):
         number_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         max_frame = max(max_frame, number_of_frames)
     
-    frame_start_num = (max_frame // 10 + 1) * 10
+    frame_start_num = 10 ** len(str(max_frame))
+
 
 def resize_and_pad(image, default_size):
     h, w = image.shape[:2]
@@ -155,6 +195,7 @@ def resize_and_pad(image, default_size):
 
     padded_image[pad_y:pad_y+new_h, pad_x:pad_x+new_w, :] = resized_image
     return padded_image
+
 
 class MPcrop:
     def __init__(self, default_size, resize_ratio):
@@ -194,6 +235,22 @@ class MPcrop:
     
         return resized_cropped_face, last_bbox
 
+
+def crop_check(Config):
+    import matplotlib.pyplot as plt
+    import time
+    frame_list = os.listdir(os.path.join(Config.cache_path, 'video'))
+    frame_chunk = int(Config.data_chunk*Config.minimum_chunk["video"])
+    for i, frame in enumerate(frame_list):
+        temp_load_npy = np.load(os.path.join(Config.cache_path, f"video/{frame}")).astype(np.uint8)
+
+        for j in range(frame_chunk):
+            plt.imshow(temp_load_npy[j])
+            plt.title(f"frame_index: {frame_chunk*i+j}")
+            plt.savefig(os.path.join(Config.cache_path, f"video/{frame.split('.')[0]}.png"))
+            plt.close()
+
+
 if __name__ == "__main__":
     
     from dataclasses import dataclass, field
@@ -204,8 +261,8 @@ if __name__ == "__main__":
         minimum_chunk: dict = field(default_factory=lambda: {"eeg_label":120, "ecg":26, "ppg":27, "video":6})
         
         preprocess: bool = True
-        data_path: str = "./data/test_data"  # this path should be changed
-        cache_path: str = "./data/preprocessed_data"  # this path should be changed
+        data_path: str = "D:/home/BCML/IITP-multimodal/data/test_data"  # this path should be changed
+        cache_path: str = "D:/home/BCML/IITP-multimodal/data/preprocessed_data"  # this path should be changed
         input_features: list[str] = field(default_factory=list)
         multi_process: int = 1  # multiprocessding process number
         face_detector: str = "mediapipe"
@@ -222,7 +279,15 @@ if __name__ == "__main__":
             return cls(input_features=['video'],
                     default_crop_size=[640, 640],
                     resize_pixel=(48,48),)
+        
+        @classmethod
+        def only_video_multi(cls):
+            return cls(input_features=['video'],
+                    default_crop_size=[640, 640],
+                    resize_pixel=(48,48),
+                    multi_process=4,)
 
-    direct_use_config = direct_use_config.only_video()
-    
+    direct_use_config = direct_use_config.only_video_multi()
     video_preprocess(direct_use_config)
+        
+    # crop_check(direct_use_config)
