@@ -64,8 +64,13 @@ def get_file_creation_time(file_path):
     except Exception as e:
         raise OSError(f"Error retrieving the creation time of the file: {e}")
 
+
 def check_chunk(data):
     return data
+
+
+def interpolation_by_chunk():
+    return 0
 
 
 """ The following code is taken from the 'BaseLoader.py' file in the rppg-toolbox library """

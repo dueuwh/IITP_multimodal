@@ -12,6 +12,7 @@ Data feature notation convention in folder name and this file
 class Preprocessing_Config:
     """
     Parameters
+        minimum_chunk (dict) : The minimum data length in a time chunk (0.2 second, refer the below table)
         preprocess (bool) : Whether to run preprocess or not, if run first time, this paramether should be True.
         data_path (str) : The raw data path (The video should be trimmed before preprocess).
         cache_path (str) : The path to save preprocessed data.
@@ -20,7 +21,8 @@ class Preprocessing_Config:
         face_detector: (str) : The "mediapipe" is the only method implemented so far.
         default_crop_size (list[int, int]) : Height, width. This is the input size if resize_ratio equals to 1.0
         resize_ratio (float) : The resize ratio for cropped frame, decrease if out of memory error occurs
-        resize_pixel (list[int, int]) : The resize pixel size for cropped frame.
+        resize_pixel (tuple[int, int]) : The resize pixel size for cropped frame.
+                                        If the pixel size is 1, it regards as "Do not resize by referencing this parameter"
         data_chunk (float) : The data slicing window (seconds)
                             The minimum time window is 0.2 second.
                             It should be 0.2 * natural number
@@ -41,10 +43,7 @@ class Preprocessing_Config:
     """
     
     """ Fixed by the sampling rates of each sensors """
-    eeg_label = 120
-    ecg = 26
-    ppg = 27
-    video = 6
+    minimum_chunk: dict = field(default_factory=lambda: {"eeg_label":120, "ecg":26, "ppg":27, "video":6})
     
     """ The customizable variables """
     preprocess: bool = True
@@ -55,36 +54,32 @@ class Preprocessing_Config:
     face_detector: str = "mediapipe"
     default_crop_size: list[int, int] = field(default_factory=list)
     resize_ratio: float = 1.0
-    resize_pixel: list[int, int] = field(default_factory=list)
+    resize_pixel: tuple[int, int] = field(default_factory=lambda: (1, 1))
     data_chunk: float = 0.2
     match_files: list[str] = field(default_factory=list)
-    extensions: dict = field(default_factory=dict)
+    extensions: dict = field(default_factory=lambda: {'eeg': '.mat', 'ecg': '.csv', 'rppg': '.npy', 'video': '.mp4'})
     dataset: str = "16channel_kw"
     
     @classmethod
     def pilot_test(cls):
         return cls(input_features=['eeg', 'rppg', 'ecg', 'video'],
-                   default_crop_size=[640, 640],
-                   extensions={'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'})
+                   default_crop_size=[640, 640])
     
     @classmethod
     def only_time_series(cls):
         return cls(input_features=['eeg', 'rppg', 'ecg'],
-                   default_crop_size=[640, 640],
-                   extensions={'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'})
+                   default_crop_size=[640, 640],)
     
     @classmethod
     def only_video(cls):
         return cls(input_features=['video'],
-                   default_crop_size=[640, 640],
-                   extensions={'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'})
+                   default_crop_size=[640, 640],)
     
     @classmethod
     def video_and_rppg(cls):
         return cls(input_features=['video'],
                    default_crop_size=[640, 640],
-                   resize_pixel=[48, 48],
-                   extensions={'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'})
+                   resize_pixel=[48, 48],)
     
     def get_config(exp_name="pilot_test"):
         return getattr(Preprocessing_Config, exp_name)()

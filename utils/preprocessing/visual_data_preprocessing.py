@@ -22,11 +22,28 @@ def image_multi_preprocess(Config):
     return 0
 
 def video_preprocess(Config):
+    """
+    Parameters
+    ----------
+    Config : dataclass
+        Refer the 'config.py' file.
+
+    Returns
+    -------
+    Nothing
+
+    Purpose
+    -------
+    Crop a face from a video or image and save it as npy files.
     
-    data_path = os.path.join(Config.data_path, 'video')
+    """
+
+    data_path = os.path.join(Config.data_path, "video")
     save_path = os.path.join(Config.cache_path, "video")
     resize_ratio = Config.resize_ratio
+    resize_pixel = Config.resize_pixel
     crop_size = Config.default_crop_size
+    frame_chunk = int(Config.data_chunk*Config.minimum_chunk)
     
     os.makedirs(save_path, exist_ok=True)
     
@@ -85,12 +102,19 @@ def video_preprocess(Config):
                 else:
                     crop_frame, last_bbox = crop_worker.face_crop(frame, frame_shape, frame_count, last_bbox)
                 
-                if resize_ratio != 1.0:
-                    crop_frame = cv2.resize(crop_frame, (0, 0), fx=resize_ratio, fy=resize_ratio, interpolation=cv2.INTER_LINEAR)
-                save_path = os.path.join(save_path, f"{frame_count}.png")
+                if resize_ratio > 1.0:
+                    crop_frame = cv2.resize(crop_frame, (0, 0), fx=resize_ratio, fy=resize_ratio, interpolation=cv2.INTER_CUBIC)
+                elif resize_ratio < 1.0:
+                    crop_frame = cv2.resize(crop_frame, (0, 0), fx=resize_ratio, fy=resize_ratio, interpolation=cv2.INTER_AREA)
                 
+                if resize_pixel[0] != 1 or resize_pixel[1] != 1:
+                    crop_frame = cv2.resize(crop_frame, resize_pixel, fx=0, fy=0, interpolation=cv2.INTER_AREA)
+
                 """ Save as npy files with chunk size in Preprocessing_Config"""
-                cv2.imwrite(save_path, crop_frame)
+                
+                
+                # save_path = os.path.join(save_path, f"{frame_count}.png")
+                # cv2.imwrite(save_path, crop_frame)
                 
                 pbar.update(1)
                 frame_count += 1
@@ -177,12 +201,8 @@ if __name__ == "__main__":
     @dataclass
     class direct_use_config:
         """ Fixed by the sampling rates of each sensors """
-        eeg_label = 120
-        ecg = 26
-        ppg = 27
-        video = 6
+        minimum_chunk: dict = field(default_factory=lambda: {"eeg_label":120, "ecg":26, "ppg":27, "video":6})
         
-        """ The customizable variables """
         preprocess: bool = True
         data_path: str = "./data/test_data"  # this path should be changed
         cache_path: str = "./data/preprocessed_data"  # this path should be changed
@@ -191,18 +211,17 @@ if __name__ == "__main__":
         face_detector: str = "mediapipe"
         default_crop_size: list[int, int] = field(default_factory=list)
         resize_ratio: float = 1.0
-        resize_pixel: list[int, int] = field(default_factory=list)
+        resize_pixel: tuple[int, int] = field(default_factory=lambda: (1, 1))
         data_chunk: float = 0.2
         match_files: list[str] = field(default_factory=list)
-        extensions: dict = field(default_factory=dict)
+        extensions: dict = field(default_factory=lambda: {'eeg': '.mat', 'ecg': '.csv', 'rppg': '.npy', 'video': '.mp4'})
         dataset: str = "16channel_kw"
 
         @classmethod
         def only_video(cls):
             return cls(input_features=['video'],
-                       default_crop_size=[640, 640],
-                       resize_pisel=[48, 48],
-                       extensions={'eeg':'.mat', 'ecg':'.csv', 'rppg':'.npy', 'video':'.mp4'})
+                    default_crop_size=[640, 640],
+                    resize_pixel=(48,48),)
 
     direct_use_config = direct_use_config.only_video()
     
