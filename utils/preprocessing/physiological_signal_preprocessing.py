@@ -4,6 +4,11 @@ import scipy.io as sio
 import pandas as pd
 from datetime import datetime
 
+#  dev libraries
+import matplotlib.pyplot as plt
+import sys
+
+
 def get_physiological_creation_time(Config):
     """
     Parameters
@@ -63,6 +68,117 @@ def get_file_creation_time(file_path):
         return readable_time
     except Exception as e:
         raise OSError(f"Error retrieving the creation time of the file: {e}")
+
+
+def index2time(data, selected_feature, Config):
+    total_time = {}
+    for file in Config.match_files:
+        total_time[file] = round(len(data[file])//Config.minimum_chunk[selected_feature]*Config.data_chunk, 1)
+    return total_time
+
+
+class lib_preprocess:  #  label index base preprocess
+    def __init__(self, feature_others, save_num_iter, Config, eeg_remain_time):
+        self.feature_others = feature_others
+        self.save_num_iter = save_num_iter
+        self.Config = Config
+        self.eeg_remain_time = eeg_remain_time
+        
+        self.save_file_size_ecg = int(Config.save_file_size * Config.minimum_chunk['ecg'] * (1//Config.data_chunk))
+        self.save_file_size_ppg = int(Config.save_file_size * Config.minimum_chunk['ppg'] * (1//Config.data_chunk))
+        self.save_file_size_rppg = int(Config.save_file_size * Config.minimum_chunk['rppg'] * (1//Config.data_chunk))
+        self.save_file_sizes = {'ecg':self.save_file_size_ecg, 'ppg':self.save_file_size_ppg, 'rppg':self.save_file_size_rppg}
+        
+        self.ecg_remain = int(eeg_remain_time//Config.sampling_rate['ecg'])
+        self.ppg_remain = int(eeg_remain_time//Config.sampling_rate['ppg'])
+        self.rppg_remain = int(eeg_remain_time//Config.sampling_rate['rppg']) 
+        self.save_file_remains = {'ecg':self.ecg_remain, 'ppg':self.ppg_remain, 'rppg':self.rppg_remain}
+        
+        for feature in feature_others:
+            os.makedirs(os.path.join(self.Config.cache_path, feature), exist_ok=True)
+    
+    def __save(self, feature, data):
+        for file in self.Config.match_files:
+            current_index = 0
+            for i in range(self.save_num_iter):
+                np.save(os.path.join(self.Config.cache_path, f"{feature}/{file}_{i}.npy"), data[current_index : current_index + self.save_file_sizes[feature]])
+                current_index += self.save_file_sizes[feature]
+            np.save(os.path.join(self.Config.cache_path, f"{feature}/{file}_{i+1}.npy"), data[current_index : current_index + self.save_file_remains[feature]])
+    
+    def save(self, feature, file_name):
+        if feature == 'ecg':
+            temp_load = np.array(pd.read_csv(os.path.join(self.Config.data_path, f"ecg/{file_name}.csv"))[['ECG']])
+            self.__save('ecg', temp_load)
+        elif feature == 'ppg':
+            temp_load = np.array(pd.read_csv(os.path.join(self.Config.data_path, f"ppg/{file_name}.csv"))[['PPG']])
+            self.__save('ppg', temp_load)
+        elif feature == 'rppg':
+            temp_load = np.load(os.path.join(self.Config.data_path, f"rppg/{file_name}.npy"))
+            self.__save('rppg', temp_load)
+
+
+def label_index_base_preprocessing(Config):
+    """
+
+    Parameters
+    ----------
+    Config : TYPE
+        Refer the "config.py' file.
+
+    Returns
+    -------
+    None.
+    
+    Purpose
+    -------
+    Synchronization of physiological data.
+    This function works well only when the eeg data is included in the "input_features" parameter of Config.
+    In this method, the eeg files must all be preprocessed (All files must have same shape).
+    Refer the preprocessed multimodal dataset (160 files)
+    """
+    
+    if 'eeg' not in Config.input_features:
+        raise ValueError("Label_Time_Base type preprocess works well only when the eeg data is included in the 'input_features' parameter of Config.")
+    
+    eeg = {}
+    emotion_label = {}
+    for file in Config.match_files:
+        temp_load = sio.loadmat(os.path.join(Config.data_path, f"eeg/{file}"))
+        
+        #  For key variation, search for 'eeg' and 'label' keyword in key.
+        eeg[file] = [value for key, value in temp_load.items() if 'eeg' in key][0]
+        emotion_label[file] = [value[0] for key, value in temp_load.items() if 'label' in key][0]
+
+    eeg_file_length = eeg[file].shape[1]
+    eeg_time = round(eeg_file_length//Config.minimum_chunk['eeg']*Config.data_chunk, 1)
+    eeg_remain_time = 0
+    
+    os.makedirs(os.path.join(Config.cache_path, "eeg"), exist_ok=True)
+    save_file_size_index = int(Config.save_file_size * Config.minimum_chunk['eeg'] * (1//Config.data_chunk))
+    eeg_save_num_iter = eeg_file_length//save_file_size_index
+    for file_index, file in enumerate(Config.match_files):
+        current_index = 0
+        for i in range(eeg_save_num_iter):
+            np.save(os.path.join(Config.cache_path, f"eeg/{file}_{i}.npy"), eeg[file][:, current_index : current_index + save_file_size_index])
+            current_index += save_file_size_index
+        np.save(os.path.join(Config.cache_path, f"eeg/{file}_{i+1}.npy"), eeg[file][:, current_index:])
+        if file_index == 0:
+            eeg_remain_time = round(len(eeg[file][:, current_index:])/Config.sampling_rate['eeg'], 1)
+
+    if len(Config.input_features) >= 2:
+        feature_others = [feature for feature in Config.input_features if feature != 'eeg']
+        
+        lib_others = lib_preprocess(feature_others, eeg_save_num_iter, Config, eeg_remain_time)
+        
+        for feature in feature_others:
+            for file in Config.match_files:
+                lib_others.save(feature, file)
+                
+    Config.eeg_time = eeg_time
+    Config.eeg_remain_time = eeg_remain_time
+    
+def creation_time_base(Config):
+    return 
 
 
 def check_chunk(data):

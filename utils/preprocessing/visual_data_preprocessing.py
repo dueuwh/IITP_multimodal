@@ -18,7 +18,21 @@ def get_video_creation_time(Config):
 
 
 def image_preprocess(Config):
-    return 0
+    """
+    Parameters
+    ----------
+    Config : dataclass
+        Refer the 'config.py' file.
+
+    Returns
+    -------
+    Nothing
+
+    Purpose
+    -------
+    Crop a face from a image and save it as npy files.
+    
+    """
 
 
 def image_multi_preprocess(Config):
@@ -38,7 +52,7 @@ def video_preprocess(Config):
 
     Purpose
     -------
-    Crop a face from a video or image and save it as npy files.
+    Crop a face from a video and save it as npy files.
     
     """
 

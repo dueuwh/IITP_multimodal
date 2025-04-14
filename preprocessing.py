@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from tqdm import tqdm
-from utils.preprocessing.visual_data_preprocessing import get_video_creation_time
-from utils.preprocessing.physiological_signal_preprocessing import get_physiological_creation_time
+from utils.preprocessing.visual_data_preprocessing import get_video_creation_time, video_preprocess, video_multi_preprocess, image_preprocess, image_multi_preprocess
+from utils.preprocessing.physiological_signal_preprocessing import get_physiological_creation_time, label_index_base_preprocessing
 
 
 def preprocess(Config):
@@ -77,17 +77,21 @@ def preprocess(Config):
     
     Config.match_files = match
     
-    physiological_time_line = get_physiological_creation_time(Config)
-    visual_time_line = get_video_creation_time(Config)
+    if Config.preprocess_type == "Creation_Time_Base":
+        physiological_time_line = get_physiological_creation_time(Config)
+        visual_time_line = get_video_creation_time(Config)
+        
+    elif Config.preprocess_type == "Label_Time_Base":
+        label_index_base_preprocessing(Config)
+
+        if 'video' in Config.input_features and Config.multi_process == 1:
+            print("\nStarting video preprocessing")
+            video_preprocess(Config)
+        elif 'video' in Config.input_features and Config.multi_process >= 2:
+            print("\nStarting video preprocessing with multiprocess")
     
-    
-    
-    
-    # if 'video' in Config.input_features and Config.multi_process == 1:
-    #     print("\nStarting video preprocessing")
-    #     video_preprocess(Config)
-    # elif 'video' in Config.input_features and Config.multi_process >= 2:
-    #     print("\nStarting video preprocessing with multiprocess")
+    else:
+        raise ValueError(f"{Config.preprocess_type} is not surpported")
     
     # if 'image' in Config.input_feature and Config.multi_process == 1:
     #     print("\nStarting image preprocessing")
@@ -144,10 +148,4 @@ def match_files(Config):
     return list(match), no_match
 
 if __name__ == "__main__":
-    class test_config:
-        data_path = "D:/home/BCML/IITP-multimodal/data/test_data/"
-        input_features = ['eeg', 'rppg', 'ecg', 'video']
-        
-    config = test_config
-    match_files(config)
-    
+    print("nope")
