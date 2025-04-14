@@ -175,10 +175,12 @@ def label_index_base_preprocessing(Config):
                 lib_others.save(feature, file)
                 
     Config.eeg_time = eeg_time
+    Config.eeg_save_num_iter = eeg_save_num_iter
     Config.eeg_remain_time = eeg_remain_time
     
+    
 def creation_time_base(Config):
-    return 
+    return 0
 
 
 def check_chunk(data):

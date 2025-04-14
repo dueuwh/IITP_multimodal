@@ -6,6 +6,9 @@ import mediapipe as mp
 from pymediainfo import MediaInfo
 from multiprocessing import Process, Manager
 
+#  dev libraries
+import sys
+
 def get_video_creation_time(Config):
     video_time_list = {}
     for video in Config.match_files:
@@ -56,12 +59,15 @@ def video_preprocess(Config):
     
     """
 
+    if Config.preprocess_type == "Label_Time_Base":
+        frame_remain = int(Config.eeg_remain_time//Config.sampling_rate['video'])
+
     data_path = os.path.join(Config.data_path, "video")
     save_path = os.path.join(Config.cache_path, "video")
     crop_size = Config.default_crop_size
     resize_ratio = Config.resize_ratio
     resize_pixel = Config.resize_pixel
-    frame_chunk = int(Config.data_chunk*Config.minimum_chunk["video"])
+    frame_chunk = int(Config.save_file_size*Config.sampling_rate['video'])
     
     save_frame_h, save_frame_w = crop_size
     
@@ -89,13 +95,11 @@ def video_preprocess(Config):
     if Config.face_detector == "mediapipe":
         crop_worker = MPcrop(Config.default_crop_size, Config.resize_ratio)
     
-    video_list = os.listdir(data_path)
-    
     total_frames = 0
     max_frame = 0
     frame_num_list = []
-    for video in video_list:
-        cap = cv2.VideoCapture(os.path.join(data_path, video))
+    for video in Config.match_files:
+        cap = cv2.VideoCapture(os.path.join(data_path, f"{video}.mp4"))
         if not cap.isOpened():
             print(f"\n*** Failed to open the video: {video} ***")
             continue
@@ -108,24 +112,27 @@ def video_preprocess(Config):
     frame_start_num = 10**len(str(max_frame))
 
     with tqdm(total=total_frames, desc="Preprocessing all videos with 1 process", unit='frame') as pbar:
-        for i, video in enumerate(video_list):
+        for i, video in enumerate(Config.match_files):
 
             frame_count = frame_start_num
-            cap = cv2.VideoCapture(os.path.join(data_path, video))
+            cap = cv2.VideoCapture(os.path.join(data_path, video+'.mp4'))
             
             frame_shape = [cap.get(cv2.CAP_PROP_FRAME_WIDTH), cap.get(cv2.CAP_PROP_FRAME_HEIGHT)]
             
             if not cap.isOpened():
                 raise ValueError(f"\n*** Failed to open the video: {video} ***")
             
-            print("Processing video: {video} ({frame_num_list[i]} frames)")
+            print(f"Processing video: {video}.mp4 ({frame_num_list[i]} frames)")
             
             last_bbox = []
             save_chunk = np.zeros((frame_chunk, save_frame_h, save_frame_w, 3))
             frame_chunk_index = 0
+            
+            npy_save_counter = 0
             while True:
                 ret, frame = cap.read()
                 if not ret:
+                    np.save(os.path.join(save_path, f"{video}_{npy_save_counter}.npy"), save_chunk[:frame_count%frame_chunk])
                     break
                 
                 if frame_count == frame_start_num:
@@ -143,11 +150,11 @@ def video_preprocess(Config):
 
                 """ Save as npy files with chunk size in Preprocessing_Config"""
 
-                if frame_count%frame_chunk == 0:
-                    if frame_count == frame_start_num:
-                        save_chunk[frame_chunk_index] = crop_frame        
-                    np.save(os.path.join(save_path, f"{frame_count}.npy"), save_chunk)
+                if frame_count%frame_chunk == 0 and frame_count != 0:
+                    np.save(os.path.join(save_path, f"{video}_{npy_save_counter}.npy"), save_chunk)
                     frame_chunk_index = 0
+                    npy_save_counter += 1
+
                 save_chunk[frame_chunk_index] = crop_frame
                 
                 # save_path = os.path.join(save_path, f"{frame_count}.png")
@@ -155,6 +162,7 @@ def video_preprocess(Config):
                 
                 pbar.update(1)
                 frame_count += 1
+                frame_chunk_index += 1
             cap.release()
         
         print("\nFinished preprocessing all videos.")

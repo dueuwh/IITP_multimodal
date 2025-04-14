@@ -17,8 +17,6 @@ if __name__ == "__main__":
     if preprocess_config.preprocess:
         preprocess(preprocess_config)
     
-    image_encoder = get_image_encoder()
     
-    positional_encoder = get_positional_encoder()
     
     
