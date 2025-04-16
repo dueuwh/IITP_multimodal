@@ -177,18 +177,45 @@ def label_index_base_preprocessing(Config):
     Config.eeg_time = eeg_time
     Config.eeg_save_num_iter = eeg_save_num_iter
     Config.eeg_remain_time = eeg_remain_time
+
+    
+
+class creation_time_base_preprocessing:
+    def __init__(self, Config):
+        self.Config = Config
+        
+    
+    def eeg_raw_preprocess(self):
+        """
+        Folder structure
+        
+        dataset_root  (Config.data_path)
+            eeg_raw
+            |---000  (subject number)
+                |---1  (experiment number)
+                    |---160_1_07_01_2025_14_13_10_0000.mat (raw file name)
+                        160_1_07_01_2025_14_13_10_0001.mat
+                        ...
+                        160_1_07_01_2025_14_13_10_0047.mat
+                |---...
+                |---n
+                    |---...
+            |---00n
+                |---...
+        """
+        print("nope")
     
     
-def creation_time_base(Config):
-    return 0
+    def get_eeg_creation_time(self):
+        
+        self.subject_list = 
 
-
-def check_chunk(data):
-    return data
-
-
-def interpolation_by_chunk():
-    return 0
+    def check_chunk(data):
+        return data
+    
+    
+    def interpolation_by_chunk():
+        return 0
 
 
 """ The following code is taken from the 'BaseLoader.py' file in the rppg-toolbox library """

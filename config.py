@@ -56,8 +56,8 @@ class Preprocessing_Config:
     preprocess: bool = True
     preprocess_type: str = "Label_Time_Base"  # or "Creation_Time_Base"
     spearate_label: bool = False
-    data_path: str = "./data/test_data"  # this path should be changed
-    cache_path: str = "./data/preprocessed_data"  # this path should be changed
+    data_path: str = f"{os.path.dirname(os.path.abspath(__file__))}/data/test_data"  # this path should be changed
+    cache_path: str = f"{os.path.dirname(os.path.abspath(__file__))}/data/preprocessed_data"  # this path should be changed
     input_features: list[str] = field(default_factory=list)
     multi_process: int = 1  # multiprocessding process number
     face_detector: str = "mediapipe"
@@ -74,6 +74,13 @@ class Preprocessing_Config:
     def pilot_test(cls):
         return cls(input_features=['eeg', 'ecg', 'video'],
                    default_crop_size=[640, 640])
+    
+    @classmethod
+    def MBE(cls):  # Medical & Bioogical Engineering - 2025 spring
+        return cls(input_features=['video', 'eeg', 'ecg'],
+                   default_crop_size=[640, 640],
+                   resize_pixel=[48, 48],
+                   preprocess_type="Creation_Time_Base")
     
     @classmethod
     def only_time_series(cls):

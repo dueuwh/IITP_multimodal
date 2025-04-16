@@ -3,7 +3,7 @@ import numpy as np
 from tqdm import tqdm
 from utils.preprocessing.visual_data_preprocessing import get_video_creation_time, video_preprocess, video_multi_preprocess, image_preprocess, image_multi_preprocess
 from utils.preprocessing.physiological_signal_preprocessing import get_physiological_creation_time, label_index_base_preprocessing
-
+from utils.preprocessing.physiological_signal_preprocessing import creation_time_base_preprocessing
 
 def preprocess(Config):
     
@@ -63,6 +63,9 @@ def preprocess(Config):
     if not isinstance(Config.cache_path, str):
         raise TypeError(f"save path: {Config.save_path} is not a string")
     
+    if Config.preprocess_type == "Creation_Time_Base":
+        eeg_raw_preprocess()
+    
     match, no_match = match_files(Config)
     print(f"{'='*50}")
     print("Check file names\n")
@@ -78,8 +81,10 @@ def preprocess(Config):
     Config.match_files = match
     
     if Config.preprocess_type == "Creation_Time_Base":
-        physiological_time_line = get_physiological_creation_time(Config)
-        visual_time_line = get_video_creation_time(Config)
+        # video_creation_times = get_video_creation_time(Config)
+        # physigological_creation_times = get_physiological_creation_time(Config)
+        
+        creation_time_base(Config)
         
     elif Config.preprocess_type == "Label_Time_Base":
         label_index_base_preprocessing(Config)
@@ -122,7 +127,6 @@ def match_files(Config):
     max_file_number = 0
     for feature in Config.input_features:
         temp_list = [name.split('_')[0]+'_'+name.split('_')[1].split('.')[0] for name in os.listdir(os.path.join(Config.data_path, feature))]
-            
         total_files[feature] = temp_list
         max_file_number = max(max_file_number, len(temp_list))
     
