@@ -5,53 +5,69 @@ from utils.preprocessing.visual_data_preprocessing import get_video_creation_tim
 from utils.preprocessing.physiological_signal_preprocessing import get_physiological_creation_time, label_index_base_preprocessing
 from utils.preprocessing.physiological_signal_preprocessing import creation_time_base_preprocessing
 
+#  dev
+import sys
+
 def preprocess(Config):
     
     """
         Data folder structure should be:
         ****** All folder names must be in lower case and singular notation ******
-            root
-                video (or image)
+        |---root
+            |---video (or image)
                 
-                    160_1.mp4
+                |---160_1.mp4
                     160_2.mp4
                     ...
                     16n_n.mp4
                     
-                image (The images should simply be extracted frames from the video)
-                    160_1
-                        000.png
+            |---image (The images should simply be extracted frames from the video)
+                |---160_1
+                    |---000.png
                         001.png
                         ...
                         nnn.png
-                    160_2
-                        000.png
+                |---160_2
+                    |---000.png
                         001.png
                         ...
                         nnn.png
                     
                     ...
                     
-                    16n_n
-                        000.png
+                |---16n_n
+                |---000.png
                         001.png
                         ...
                         nnn.png
                     
-                eeg
-                    160_1.mat
+            |---eeg
+                |---160_1.mat
                     160_2.mat
                     ...
                     16n_n.mat
                     
-                polar (ecg)
-                    160_1.csv
+            |---eeg_raw
+                |---000  (subject number)
+                    |---1  (experiment number)
+                        |---160_1_07_01_2025_14_13_10_0000.mat (raw file name)
+                            160_1_07_01_2025_14_13_10_0001.mat
+                            ...
+                            160_1_07_01_2025_14_13_10_0047.mat
+                    |---...
+                    |---n
+                        |---...
+                |---00n
+                    |---...
+                    
+            |---polar (ecg)
+                |---160_1.csv
                     160_2.csv
                     ...
                     16n_n.csv
                     
-                rppg (if exist)
-                    160_1.npy
+            |---rppg (if exist)
+                |---160_1.npy
                     160_2.npy
                     ...
                     16n_n.npy
@@ -64,7 +80,11 @@ def preprocess(Config):
         raise TypeError(f"save path: {Config.save_path} is not a string")
     
     if Config.preprocess_type == "Creation_Time_Base":
-        eeg_raw_preprocess()
+        ctb_inst = creation_time_base_preprocessing(Config)
+        ctb_inst.eeg_raw_preprocess()
+    
+    print("run, ok")
+    sys.exit()
     
     match, no_match = match_files(Config)
     print(f"{'='*50}")

@@ -183,8 +183,7 @@ def label_index_base_preprocessing(Config):
 class creation_time_base_preprocessing:
     def __init__(self, Config):
         self.Config = Config
-        
-    
+
     def eeg_raw_preprocess(self):
         """
         Folder structure
@@ -203,18 +202,42 @@ class creation_time_base_preprocessing:
             |---00n
                 |---...
         """
-        print("nope")
-    
-    
-    def get_eeg_creation_time(self):
+        os.makedirs(os.path.join(self.Config.data_path, 'eeg'), exist_ok=True)
+        subject_list = os.listdir(os.path.join(self.Config.data_path, 'eeg_raw'))
+        total_eeg_raw = {}
+        for subject in subject_list:
+            experiment_list = os.listdir(os.path.join(self.Config.data_path, f"eeg_raw/{subject}"))
+            for experiment in experiment_list:
+                total_eeg_raw[subject] = {experiment:
+                                          os.listdir(os.path.join(self.Config.data_path, f"eeg_raw/{subject}/{experiment}"))}
         
-        self.subject_list = 
+        for subject in subject_list:
+            for experiment in experiment_list:
+                for file in total_eeg_raw[subject][experiment]:
+                    self.eeg_time_trim(os.path.join(self.Config.data_path, f"eeg_raw/{subject}/{experiment}/{file}"))
 
-    def check_chunk(data):
-        return data
+    def eeg_time_trim(self, file_path):
+        temp_load = sio.loadmat(file_path)
+        temp_load_y = temp_load['y'].squeeze()
+              
+        for i in range(temp_load['y'].shape[0]):
+            plt.plot(temp_load_y[i, :])
+            plt.title(f"axis {i}")
+            plt.show()
+
+        
+    def get_eeg_actual_time(self, file):
+        return 0
+
+    def get_eeg_creation_time(self, file_path):
+        
+        return 0
+
+    def check_chunk(self):
+        return 0
     
     
-    def interpolation_by_chunk():
+    def interpolation_by_chunk(self):
         return 0
 
 
