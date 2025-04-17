@@ -144,11 +144,9 @@ def video_preprocess(Config):
                 ret, frame = cap.read()
 
                 #  break condition for label time base preprocessing
-<<<<<<< HEAD
+
                 if npy_save_counter == Config.eeg_save_num_iter:
-=======
-                if npy_save_counter+1 == Config.eeg_save_num_iter:
->>>>>>> 956dbd558b51a9322f401ed0b840f797cf7c680c
+
                     if frame_remain == 0:
                         break
                     elif remain_frame_counter == frame_remain:
