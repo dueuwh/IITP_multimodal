@@ -80,7 +80,9 @@ class Preprocessing_Config:
         return cls(input_features=['video', 'eeg', 'ecg'],
                    default_crop_size=[640, 640],
                    resize_pixel=[48, 48],
-                   preprocess_type="Creation_Time_Base")
+                   preprocess_type="Label_Time_Base",
+                   data_path=f"{os.path.dirname(os.path.abspath(__file__))}/data/BME_2025_spring",
+                   cache_path=f"{os.path.dirname(os.path.abspath(__file__))}/data/BME_2025_spring_preprocessed_data")
     
     @classmethod
     def only_time_series(cls):

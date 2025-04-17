@@ -141,15 +141,16 @@ def label_index_base_preprocessing(Config):
         raise ValueError("Label_Time_Base type preprocess works well only when the eeg data is included in the 'input_features' parameter of Config.")
     
     eeg = {}
+    label = {}
     emotion_label = {}
     for file in Config.match_files:
         temp_load = sio.loadmat(os.path.join(Config.data_path, f"eeg/{file}"))
-        
         #  For key variation, search for 'eeg' and 'label' keyword in key.
         eeg[file] = [value for key, value in temp_load.items() if 'eeg' in key][0]
+        label[file] =[value for key, value in temp_load.items() if 'label' in key][0]
         emotion_label[file] = [value[0] for key, value in temp_load.items() if 'label' in key][0]
-
-    eeg_file_length = eeg[file].shape[1]
+    
+    eeg_file_length = eeg[Config.match_files[0]].shape[1]
     eeg_time = round(eeg_file_length//Config.minimum_chunk['eeg']*Config.data_chunk, 1)
     eeg_remain_time = 0
     
@@ -160,11 +161,12 @@ def label_index_base_preprocessing(Config):
         current_index = 0
         for i in range(eeg_save_num_iter):
             np.save(os.path.join(Config.cache_path, f"eeg/{file}_{i}.npy"), eeg[file][:, current_index : current_index + save_file_size_index])
+            # np.save(os.path.join(Config.cache_path, f"label/{file}_{i}.npy"), label[file][:, current_index : current_index + save_file_size_index])
             current_index += save_file_size_index
         np.save(os.path.join(Config.cache_path, f"eeg/{file}_{i+1}.npy"), eeg[file][:, current_index:])
+        # np.save(os.path.join(Config.cache_path, f"label/{file}_{i+1}.npy"), label[file][:, current_index:])
         if file_index == 0:
             eeg_remain_time = round(len(eeg[file][:, current_index:])/Config.sampling_rate['eeg'], 1)
-
     if len(Config.input_features) >= 2:
         feature_others = [feature for feature in Config.input_features if feature != 'eeg']
         
