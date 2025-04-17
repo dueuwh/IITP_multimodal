@@ -149,7 +149,7 @@ def label_index_base_preprocessing(Config):
         eeg[file] = [value for key, value in temp_load.items() if 'eeg' in key][0]
         emotion_label[file] = [value[0] for key, value in temp_load.items() if 'label' in key][0]
 
-    eeg_file_length = eeg[file].shape[1]
+    eeg_file_length = eeg[Config.match_files[0]].shape[1]
     eeg_time = round(eeg_file_length//Config.minimum_chunk['eeg']*Config.data_chunk, 1)
     eeg_remain_time = 0
     

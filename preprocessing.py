@@ -83,9 +83,6 @@ def preprocess(Config):
         ctb_inst = creation_time_base_preprocessing(Config)
         ctb_inst.eeg_raw_preprocess()
     
-    print("run, ok")
-    sys.exit()
-    
     match, no_match = match_files(Config)
     print(f"{'='*50}")
     print("Check file names\n")

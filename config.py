@@ -77,10 +77,11 @@ class Preprocessing_Config:
     
     @classmethod
     def MBE(cls):  # Medical & Bioogical Engineering - 2025 spring
-        return cls(input_features=['video', 'eeg', 'ecg'],
+        return cls(data_path=f"{os.path.dirname(os.path.abspath(__file__))}/data/BME_2025_spring",
+                   cache_path=f"{os.path.dirname(os.path.abspath(__file__))}/data/BME_2025_spring_preprocessed_data",
+                   input_features=['video', 'eeg', 'ecg'],
                    default_crop_size=[640, 640],
-                   resize_pixel=[48, 48],
-                   preprocess_type="Creation_Time_Base")
+                   resize_pixel=[48, 48],)
     
     @classmethod
     def only_time_series(cls):
