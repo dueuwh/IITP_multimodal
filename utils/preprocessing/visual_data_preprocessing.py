@@ -59,9 +59,6 @@ def video_preprocess(Config):
     
     """
 
-    if Config.preprocess_type == "Label_Time_Base":
-        frame_remain = int(Config.eeg_remain_time//Config.sampling_rate['video'])
-
     data_path = os.path.join(Config.data_path, "video")
     save_path = os.path.join(Config.cache_path, "video")
     crop_size = Config.default_crop_size
@@ -107,9 +104,22 @@ def video_preprocess(Config):
         total_frames += number_of_frames
         max_frame = max(max_frame, number_of_frames)
         frame_num_list.append(number_of_frames)
+
+    #  parameter setup for "Label Time Base" preprocessing break condition.
+    frame_remain = None
+    if Config.preprocess_type == "Label_Time_Base":
+        frame_remain = int(Config.eeg_remain_time//Config.sampling_rate['video'])
+        total_frames = int(Config.save_file_size * Config.minimum_chunk['video'] * (1//Config.data_chunk)*Config.eeg_save_num_iter+frame_remain)
     
     print(f"Total frames to process: {total_frames}")
     frame_start_num = 10**len(str(max_frame))
+
+    # print("\n\n===================================================")
+    # print(f"frame_remain: {frame_remain}")
+    # print(f"total_frames: {total_frames}")
+    # print(f"Config.eeg_remain_time: {Config.eeg_remain_time}")
+    # print("===================================================\n\n")
+    # sys.exit()
 
     with tqdm(total=total_frames, desc="Preprocessing all videos with 1 process", unit='frame') as pbar:
         for i, video in enumerate(Config.match_files):
@@ -123,14 +133,25 @@ def video_preprocess(Config):
                 raise ValueError(f"\n*** Failed to open the video: {video} ***")
             
             print(f"Processing video: {video}.mp4 ({frame_num_list[i]} frames)")
-            
+
             last_bbox = []
             save_chunk = np.zeros((frame_chunk, save_frame_h, save_frame_w, 3))
             frame_chunk_index = 0
             
             npy_save_counter = 0
+            remain_frame_counter = 0
             while True:
                 ret, frame = cap.read()
+
+                #  break condition for label time base preprocessing
+                if npy_save_counter == Config.eeg_save_num_iter:
+                    if frame_remain == 0:
+                        break
+                    elif remain_frame_counter == frame_remain:
+                        np.save(os.path.join(save_path, f"{video}_{npy_save_counter}.npy"), save_chunk[:frame_count%frame_chunk])
+                        break
+                    remain_frame_counter+=1
+
                 if not ret:
                     np.save(os.path.join(save_path, f"{video}_{npy_save_counter}.npy"), save_chunk[:frame_count%frame_chunk])
                     break
@@ -149,7 +170,6 @@ def video_preprocess(Config):
                     crop_frame = cv2.resize(crop_frame, resize_pixel, fx=0, fy=0, interpolation=cv2.INTER_AREA)
 
                 """ Save as npy files with chunk size in Preprocessing_Config"""
-
                 if frame_count%frame_chunk == 0 and frame_count != 0:
                     np.save(os.path.join(save_path, f"{video}_{npy_save_counter}.npy"), save_chunk)
                     frame_chunk_index = 0
@@ -168,7 +188,7 @@ def video_preprocess(Config):
         print("\nFinished preprocessing all videos.")
     
     crop_worker.close()
-
+    
 
 def video_multi_preprocess(Config):
     """
