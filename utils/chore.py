@@ -9,6 +9,7 @@ from typing import List
 import codecs
 from pymediainfo import MediaInfo
 import cv2
+import scipy.io as sio
 
 def get_video_creation_time_mediainfo(video_path):
     """
@@ -136,8 +137,14 @@ if __name__ == "__main__":
             'unique': unique_strings
         }
 
-    # Example usage
-    test_input = {'eeg': ['160_1', '160_2'], 'video': ['160_1']}
-    result = analyze_strings(test_input)
-    print("Common Strings:", result['common'])
-    print("Unique Strings:", result['unique'])
+    # # Example usage
+    # test_input = {'eeg': ['160_1', '160_2'], 'video': ['160_1']}
+    # result = analyze_strings(test_input)
+    # print("Common Strings:", result['common'])
+    # print("Unique Strings:", result['unique'])
+
+    print("\n============================\n")
+    temp_load = sio.loadmat("d:/home/BCML/IITP-multimodal/data/16channel_Emotion/eeg/BCML_16ch/000/160_set1.mat")
+    print(temp_load)
+    print(temp_load['y'].squeeze())
+    print("\n============================\n")

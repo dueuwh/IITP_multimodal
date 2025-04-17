@@ -177,18 +177,68 @@ def label_index_base_preprocessing(Config):
     Config.eeg_time = eeg_time
     Config.eeg_save_num_iter = eeg_save_num_iter
     Config.eeg_remain_time = eeg_remain_time
+
+    
+
+class creation_time_base_preprocessing:
+    def __init__(self, Config):
+        self.Config = Config
+
+    def eeg_raw_preprocess(self):
+        """
+        Folder structure
+        
+        dataset_root  (Config.data_path)
+            eeg_raw
+            |---000  (subject number)
+                |---1  (experiment number)
+                    |---160_1_07_01_2025_14_13_10_0000.mat (raw file name)
+                        160_1_07_01_2025_14_13_10_0001.mat
+                        ...
+                        160_1_07_01_2025_14_13_10_0047.mat
+                |---...
+                |---n
+                    |---...
+            |---00n
+                |---...
+        """
+        os.makedirs(os.path.join(self.Config.data_path, 'eeg'), exist_ok=True)
+        subject_list = os.listdir(os.path.join(self.Config.data_path, 'eeg_raw'))
+        total_eeg_raw = {}
+        for subject in subject_list:
+            experiment_list = os.listdir(os.path.join(self.Config.data_path, f"eeg_raw/{subject}"))
+            for experiment in experiment_list:
+                total_eeg_raw[subject] = {experiment:
+                                          os.listdir(os.path.join(self.Config.data_path, f"eeg_raw/{subject}/{experiment}"))}
+        
+        for subject in subject_list:
+            for experiment in experiment_list:
+                for file in total_eeg_raw[subject][experiment]:
+                    self.eeg_time_trim(os.path.join(self.Config.data_path, f"eeg_raw/{subject}/{experiment}/{file}"))
+
+    def eeg_time_trim(self, file_path):
+        temp_load = sio.loadmat(file_path)
+        temp_load_y = temp_load['y'].squeeze()
+              
+        for i in range(temp_load['y'].shape[0]):
+            plt.plot(temp_load_y[i, :])
+            plt.title(f"axis {i}")
+            plt.show()
+
+        
+    def get_eeg_actual_time(self, file):
+        return 0
+
+    def get_eeg_creation_time(self, file_path):
+        
+        return 0
+
+    def check_chunk(self):
+        return 0
     
     
-def creation_time_base(Config):
-    return 0
-
-
-def check_chunk(data):
-    return data
-
-
-def interpolation_by_chunk():
-    return 0
+    def interpolation_by_chunk(self):
+        return 0
 
 
 """ The following code is taken from the 'BaseLoader.py' file in the rppg-toolbox library """
